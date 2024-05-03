@@ -1,9 +1,19 @@
 import streamlit as st
+from firebase_admin import credentials, db, initialize_app, get_app
 import requests
 from datetime import datetime, timedelta
 from statistics import stdev
+import matplotlib
+matplotlib.use('agg')  # Matplotlib 백엔드 설정
 import matplotlib.pyplot as plt
 import numpy as np
+
+# Firebase 인증 및 초기화
+cred = credentials.Certificate("C:/test/test-486a8-firebase-adminsdk-6jl9k-2bf67a04df.json")
+try:
+    app = get_app()
+except ValueError:
+    app = initialize_app(cred, {'databaseURL': 'https://test-486a8-default-rtdb.firebaseio.com/'})
 
 # Firebase Realtime Database의 URL
 database_url = "https://test-486a8-default-rtdb.firebaseio.com/realPower.json"
