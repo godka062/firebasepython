@@ -1,11 +1,8 @@
 import streamlit as st
+import firebase_admin
 from firebase_admin import credentials, db, initialize_app, get_app
-import requests
 from datetime import datetime, timedelta
 from statistics import stdev
-import matplotlib
-matplotlib.use('agg')  # Matplotlib 백엔드 설정
-import matplotlib.pyplot as plt
 import numpy as np
 
 # Firebase 인증 및 초기화
@@ -15,23 +12,17 @@ try:
 except ValueError:
     app = initialize_app(cred, {'databaseURL': 'https://test-486a8-default-rtdb.firebaseio.com/'})
 
-# Firebase Realtime Database의 URL
-database_url = "https://test-486a8-default-rtdb.firebaseio.com/realPower.json"
+ref = db.reference('realPower')
 
 # 사용자가 선택한 업데이트 간격을 가져옴
 update_interval = st.slider("데이터 업데이트 간격 (초)", min_value=1, max_value=60, value=10, key='interval_slider')
 st.write(f"데이터는 매 {update_interval} 초마다 업데이트됩니다.")
 
 def fetch_data():
-    try:
-        response = requests.get(database_url)
-        data = response.json()
-        if data:
-            return [(datetime.strptime(key, "%Y-%m-%d %H:%M:%S"), value) for key, value in data.items()]
-        else:
-            return []
-    except Exception as e:
-        st.error(f"데이터를 가져오는 동안 오류가 발생했습니다: {e}")
+    data = ref.get()
+    if data:
+        return [(datetime.strptime(key, "%Y-%m-%d %H:%M:%S"), value) for key, value in data.items()]
+    else:
         return []
 
 def get_recent_data(data):
