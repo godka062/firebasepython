@@ -1,9 +1,8 @@
 import streamlit as st
-import matplotlib.pyplot as plt
+import plotly.graph_objs as go
 from firebase_admin import credentials, db, initialize_app, get_app
 from datetime import datetime, timedelta
 from statistics import stdev
-import numpy as np
 
 # Firebase 인증 및 초기화
 cred = credentials.Certificate("C:/test/test-486a8-firebase-adminsdk-6jl9k-2bf67a04df.json")
@@ -31,35 +30,10 @@ def get_recent_data(data):
     else:
         return data
 
-def plot_graph(data, start_time, end_time):
-    filtered_data = [(time, value) for time, value in data if start_time <= time <= end_time]
-    x = [item[0] for item in filtered_data]
-    y = [item[1] for item in filtered_data]
-    min_y = min(y)
-    max_y = max(y)
-
-    fig, ax = plt.subplots(figsize=(8, 6), dpi=100)
-    ax.plot(x, y, 'b-')
-    
-    # Add trend line
-    z = np.polyfit(range(len(y)), y, 1)
-    p = np.poly1d(z)
-    ax.plot(x, p(range(len(y))), color='orange', linestyle='--', linewidth=2, label='Trend Line')
-    
-    ax.scatter(x, y, color='red')
-    ax.set_xlabel('Time')
-    ax.set_ylabel('Real Power [W]')
-    ax.set_title('Real Power Over Time')
-    ax.set_ylim(min_y - 0.1 * abs(min_y), max_y + 0.1 * abs(max_y))
-    ax.set_xlim(x[0], x[-1])
-    ax.legend()
-    st.pyplot(fig)
-
 st.title("실시간 전력 모니터링")
 
 data = fetch_data()
 recent_data = get_recent_data(data)
-plot_graph(recent_data, recent_data[0][0], recent_data[-1][0])
 
 st.subheader("실시간 전력")
 if data:
@@ -78,15 +52,6 @@ with st.expander("전체 데이터 보기"):
         for idx, (timestamp, value) in enumerate(data[start_index:end_index], start=start_index + 1):
             st.write(f"{idx}. 시간: {timestamp}, 전력량: {value} [W]")
 
-st.subheader("시간 범위 선택")
-start_date = st.date_input("시작 날짜", value=datetime.now() - timedelta(days=1))
-start_time = st.time_input("시작 시간", value=datetime.now().time())
-end_date = st.date_input("종료 날짜", value=datetime.now())
-end_time = st.time_input("종료 시간", value=datetime.now().time())
-start_datetime = datetime.combine(start_date, start_time)
-end_datetime = datetime.combine(end_date, end_time)
-st.write(f"선택된 시간 범위: {start_datetime} ~ {end_datetime}")
-
 st.subheader("통계 정보")
 if data:
     values = [item[1] for item in data]
@@ -94,3 +59,12 @@ if data:
     st.write(f"최솟값: {min(values)} [W]")
     st.write(f"최댓값: {max(values)} [W]")
     st.write(f"표준편차: {stdev(values)}")
+
+# Plotting graph using Plotly
+x = [item[0] for item in recent_data]
+y = [item[1] for item in recent_data]
+
+fig = go.Figure()
+fig.add_trace(go.Scatter(x=x, y=y, mode='lines+markers', name='Real Power'))
+fig.update_layout(title='Real Power Over Time', xaxis_title='Time', yaxis_title='Real Power [W]')
+st.plotly_chart(fig)
