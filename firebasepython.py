@@ -1,13 +1,19 @@
+import os
 import firebase_admin
-from firebase_admin import credentials, db
+from firebase_admin import db
 import streamlit as st
 
-# Firebase 프로젝트 키 및 데이터베이스 URL 설정
-cred = credentials.Certificate("C:/test/test-486a8-firebase-adminsdk-6jl9k-2bf67a04df.json")
+# 환경 변수에서 서비스 계정 키 경로 가져오기
+service_account_key = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
+
+# Firebase 앱 초기화
 try:
     app = firebase_admin.get_app()
 except ValueError:
-    app = firebase_admin.initialize_app(cred, {'databaseURL': 'https://test-486a8-default-rtdb.firebaseio.com/'})
+    app = firebase_admin.initialize_app(options={
+        'databaseURL': 'https://test-486a8-default-rtdb.firebaseio.com/',
+        'credential': firebase_admin.credentials.Certificate(service_account_key)
+    })
 
 # 파이어베이스에서 데이터 가져오기
 ref = db.reference('realPower')
