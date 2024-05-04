@@ -1,23 +1,27 @@
-import os
-import firebase_admin
-from firebase_admin import db
 import streamlit as st
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import db
 
-# 환경 변수에서 서비스 계정 키 경로 가져오기
-service_account_key = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
+# 파이어베이스 서비스 계정 키 로드
+cred = credentials.Certificate("C:/test/test-486a8-firebase-adminsdk-6jl9k-2bf67a04df.json")
 
-# Firebase 앱 초기화
-try:
-    app = firebase_admin.get_app()
-except ValueError:
-    app = firebase_admin.initialize_app(options={
-        'databaseURL': 'https://test-486a8-default-rtdb.firebaseio.com/',
-        'credential': firebase_admin.credentials.Certificate(service_account_key)
-    })
+# 파이어베이스 앱 초기화
+firebase_admin.initialize_app(cred, {
+    'databaseURL': 'https://test-486a8-default-rtdb.firebaseio.com/'
+})
 
-# 파이어베이스에서 데이터 가져오기
-ref = db.reference('realPower')
-data = ref.get()
+# 데이터베이스 경로 설정
+data_ref = db.reference('realPower')
 
-# 스트림릿으로 데이터 표시
-st.write(data)
+# Streamlit 애플리케이션 시작
+st.title('Real Power 데이터 시각화')
+
+# 데이터 가져오기
+data = data_ref.get()
+
+# 데이터 출력
+if data:
+    st.write(data)
+else:
+    st.write('데이터를 가져올 수 없습니다.')
