@@ -2,9 +2,13 @@ import streamlit as st
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import db
+import os
 
-# 파이어베이스 서비스 계정 키 로드
-cred = credentials.Certificate("C:/test/test-486a8-firebase-adminsdk-6jl9k-2bf67a04df.json")
+# 환경 변수에서 파이어베이스 인증 정보 가져오기
+firebase_credential_json = os.getenv("FIREBASE_CREDENTIAL_JSON")
+
+# 파이어베이스 서비스 계정 키 초기화
+cred = credentials.Certificate(firebase_credential_json)
 
 # 파이어베이스 앱 초기화
 firebase_admin.initialize_app(cred, {
